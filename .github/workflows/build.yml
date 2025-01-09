@@ -115,6 +115,7 @@ jobs:
         env:
           MQTT_K: ${{ secrets.MQTT_K }}
         run: |
+          echo $RUNNER_OS
           if [ "$RUNNER_OS" = "Windows" ]; then
             $filePath = "utils/const.py"
             (Get-Content $filePath) -replace '\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*\*', "${{ env.MQTT_K }}" | Set-Content $filePath
