@@ -46,7 +46,6 @@ jobs:
         include:
           - os: windows-latest
             build: ./build_scripts/win32_build.bat
-            zip: Compress-Archive -Path dist/* -Destination EdgeNodeLauncher-WIN32.zip
             name: EdgeNodeLauncher-WIN32
             platformDependencies: ""
 
@@ -54,7 +53,6 @@ jobs:
             build: |
               chmod +x build_scripts/unix_build.sh
               ./build_scripts/unix_build.sh
-            zip: zip -r EdgeNodeLauncher-LINUX_Ubuntu-24.04.zip dist/*
             name: EdgeNodeLauncher-LINUX_Ubuntu-24.04
             platformDependencies: sudo apt-get update && sudo apt install -y '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev --fix-missing
 
@@ -62,7 +60,6 @@ jobs:
             build: |
               chmod +x build_scripts/unix_build.sh
               ./build_scripts/unix_build.sh
-            zip: zip -r EdgeNodeLauncher-LINUX_Ubuntu-22.04.zip dist/*
             name: EdgeNodeLauncher-LINUX_Ubuntu-22.04
             platformDependencies: sudo apt-get update && sudo apt install -y '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev --fix-missing
 
@@ -70,7 +67,6 @@ jobs:
             build: |
               chmod +x build_scripts/unix_build.sh
               ./build_scripts/unix_build.sh
-            zip: zip -r EdgeNodeLauncher-LINUX_Ubuntu-20.04.zip dist/*
             name: EdgeNodeLauncher-LINUX_Ubuntu-20.04
             platformDependencies: sudo apt-get update && sudo apt-get install -y '^libxcb.*-dev' libx11-xcb-dev libglu1-mesa-dev libxrender-dev libxi-dev libxkbcommon-dev libxkbcommon-x11-dev --fix-missing
 
@@ -108,11 +104,30 @@ jobs:
       - name: Build app
         run: ${{ matrix.build }}
 
-      - name: Zip App
-        run: ${{ matrix.zip }}
-
-      - name: Save zip File as artifact
+      - name: Save build artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: release
-          path: ./${{ matrix.name }}.zip
+          name: ${{ matrix.name }}-build
+          path: dist/*
+
+  collect-artifacts:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions: write-all
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: ${{ matrix.name }}-build
+          path: ./all-builds
+
+      - name: Create final zip
+        run: |
+          zip -r final-build-${{ github.event.pull_request.number }}-${{ github.sha }}.zip ./all-builds
+
+      - name: Upload final zip
+        uses: actions/upload-artifact@v3
+        with:
+          name: final-build-${{ github.event.pull_request.number }}-${{ github.sha }}
+          path: final-build-${{ github.event.pull_request.number }}-${{ github.sha }}.zip
