@@ -107,7 +107,7 @@ jobs:
       - name: Save build artifacts
         uses: actions/upload-artifact@v3
         with:
-          name: ${{ matrix.name }}-build
+          name: ${{ matrix.name }}-build-${{ github.event.pull_request.number }}-${{ github.sha }}
           path: dist/*
 
   collect-artifacts:
@@ -139,13 +139,3 @@ jobs:
         with:
           name: EdgeNodeLauncher-LINUX_Ubuntu-20.04-build
           path: ./all-builds/EdgeNodeLauncher-LINUX_Ubuntu-20.04
-
-      - name: Create final zip
-        run: |
-          zip -r final-build-${{ github.event.pull_request.number }}-${{ github.sha }}.zip ./all-builds
-
-      - name: Upload final zip
-        uses: actions/upload-artifact@v3
-        with:
-          name: final-build-${{ github.event.pull_request.number }}-${{ github.sha }}
-          path: final-build-${{ github.event.pull_request.number }}-${{ github.sha }}.zip
